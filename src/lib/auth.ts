@@ -50,18 +50,20 @@ export const auth = betterAuth({
     requireEmailVerification: true,
   },
   emailVerification: {
+    sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url, token }, request) => {
-      const verificationUrl = `${process.env.APP_URL}/verify-email?token=${token}`;
+      try {
+        const verificationUrl = `${process.env.APP_URL}/verify-email?token=${token}`;
 
-      const info = await transporter.sendMail({
-        from: '"Example Team" <italimbd@gmail.com>', 
-        to: user.email,
-        subject: "Verify your email address",
+        const info = await transporter.sendMail({
+          from: '"Example Team" <italimbd@gmail.com>',
+          to: user.email,
+          subject: "Verify your email address",
 
-        text: `Please verify your email address by clicking this link:
+          text: `Please verify your email address by clicking this link:
 ${verificationUrl}`,
 
-        html: `
+          html: `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -282,7 +284,11 @@ ${verificationUrl}`,
       </body>
     </html>
   `,
-      });
+        });
+      } catch (error) {
+        console.log(error);
+        throw error;
+      }
     },
   },
 });
