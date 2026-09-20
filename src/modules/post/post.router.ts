@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { postController } from "./post.controller";
 // import { betterAuth } from "better-auth";
 import auth, { UserRole } from "../../middlewares/auth";
