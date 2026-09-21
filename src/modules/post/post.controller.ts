@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { PostService } from "./post.service";
+import { get } from "node:http";
+
 
 const createPost = async (req: Request, res: Response) => {
   try {
@@ -21,6 +23,26 @@ const createPost = async (req: Request, res: Response) => {
   }
 };
 
+const getAllPost = async (req: Request, res: Response) => {
+  try {
+    const {search} = req.query;
+    
+    // console.log(search);
+    const searchString = typeof search === 'string' ? search : undefined
+
+    const tags = req.query.tags ? (req.query.tags as string).split(",") : [];
+    
+    const result = await PostService.getAllPosts({search:  searchString, tags});
+    
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+        error:"Post getting error",
+        details: error
+    })
+  }
+};
 export const postController = {
   createPost,
+  getAllPost
 };

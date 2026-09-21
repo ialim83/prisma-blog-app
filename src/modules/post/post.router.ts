@@ -64,6 +64,8 @@ const router = express.Router();
 //   };
 // };
 
+router.get("/get-all-posts", postController.getAllPost)
+
 router.post("/", auth(UserRole.USER), postController.createPost);
 
 export const postRouter = router;
