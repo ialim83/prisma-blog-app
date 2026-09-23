@@ -39,6 +39,9 @@ const getAllPosts = async (payload: {
           },
         },
       ],
+      tags: {
+        hasEvery: payload.tags as string[]
+      }
     },
   });
   return result;
