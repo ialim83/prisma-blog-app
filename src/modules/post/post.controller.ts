@@ -43,14 +43,16 @@ const getAllPost = async (req: Request, res: Response) => {
       : undefined;
 
     // console.log(isFeatured);
-    const page = Number(req.query.page ?? 1);
-    const limit = Number(req.query.limit ?? 10);
-    const skip = (page - 1) * limit;
 
-    const sortBy = req.query.sortBy as string | undefined;
-    const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
+    // const page = Number(req.query.page ?? 1);
+    // const limit = Number(req.query.limit ?? 10);
+    // const skip = (page - 1) * limit;
 
-    const options = paginationSortingHelper(req.query);
+    // const sortBy = req.query.sortBy as string | undefined;
+    // const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
+
+    const {page, limit, skip, sortBy, sortOrder} = paginationSortingHelper(req.query);
+    // console.log({page, limit, skip, sortBy, sortOrder});
 
     const result = await PostService.getAllPosts({
       search: searchString,
@@ -62,7 +64,7 @@ const getAllPost = async (req: Request, res: Response) => {
       limit,
       skip,
       sortBy,
-      sortOrder,
+      sortOrder
     });
 
     res.status(200).json(result);
