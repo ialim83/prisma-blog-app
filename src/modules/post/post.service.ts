@@ -116,7 +116,19 @@ const getAllPosts = async ({
     };
 };
 
+const getPostById = async (PostId: string) => {
+  // console.log("id");
+  
+  const post = await prisma.post.findUnique({
+    where: {
+      id: PostId,
+    },
+  });
+  return post;
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
+  getPostById,
 };
