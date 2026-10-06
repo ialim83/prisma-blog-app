@@ -35,7 +35,7 @@ const getAllPosts = async ({
   page: number;
   limit: number;
   skip: number;
-  sortBy: string ;
+  sortBy: string;
   sortOrder: string;
 }) => {
   const andConditions: PostWhereInput[] = [];
@@ -113,18 +113,29 @@ const getAllPosts = async ({
       limit,
     },
     data: allPost,
-    };
+  };
 };
 
 const getPostById = async (PostId: string) => {
   // console.log("id");
-  
-  const post = await prisma.post.findUnique({
-    where: {
-      id: PostId,
-    },
+  return await prisma.$transaction(async (tx) => {
+    await tx.post.update({
+      where: {
+        id: PostId,
+      },
+      data: {
+        views: {
+          increment: 1,
+        },
+      },
+    });
+    const post = await tx.post.findUnique({
+      where: {
+        id: PostId,
+      },
+    });
+    return post;
   });
-  return post;
 };
 
 export const PostService = {
