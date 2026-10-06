@@ -4,8 +4,9 @@ import { commentService } from "./comment.service";
 const createComment = async (req: Request, res: Response) => {
   try {
     
-
-    const result = await commentService.createComment();
+    const user = req.user;
+    req.body.authorId = user?.id;
+    const result = await commentService.createComment(req.body);
 
     res.status(202).json(result);
   } catch (error) {
