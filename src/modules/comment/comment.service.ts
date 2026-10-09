@@ -94,10 +94,45 @@ const deleteComment = async (commentId: string, authorId: string) => {
   });
 }
 
-const updateComment = async (commentId: string, data:{content: string, status: CommentStatus}, authorId: string ) => {
-  console.log("update", commentId, authorId, data);
-  
-}
+const updateComment = async (commentId: string, data:{content?: string, status?: CommentStatus}, authorId: string ) => {
+  // console.log("update", commentId, authorId, data);
+  const commentData = await prisma.comment.findFirst({
+    where: {
+      id: commentId,
+      authorId: authorId,
+    },
+    select: {
+      id: true,
+    },
+  });
+  console.log(commentData);
+  if (!commentData) {
+    throw new Error("Comment not found or you are not the author");
+  }
+
+  return await prisma.comment.update({
+    where: {
+      id: commentData.id,
+    },
+    data: data,
+  });
+};
+
+const moderateComment = async (commentId: string, data: { status?: CommentStatus }) => {
+  console.log("update", commentId, data);
+          await prisma.comment.findUniqueOrThrow({
+            where: {
+              id: commentId,
+            },
+          });
+
+          return await prisma.comment.update({
+            where: {
+              id: commentId,
+            },
+            data: data,
+          });
+};
 
 export const commentService = {
   createComment,
@@ -105,4 +140,5 @@ export const commentService = {
   getCommentsByAuthorId,
   deleteComment,
   updateComment,
+  moderateComment,
 };

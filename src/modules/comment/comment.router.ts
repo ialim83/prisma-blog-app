@@ -22,4 +22,7 @@ router.delete("/:commentId",auth(UserRole.USER, UserRole.ADMIN), commentControll
 // update comment
 router.patch("/:commentId",auth(UserRole.USER, UserRole.ADMIN), commentController.updateComment);
 
+// moderate comment
+router.patch("/moderate/:commentId",auth(UserRole.ADMIN), commentController.moderateComment);
+
 export const commentRouter = router;
