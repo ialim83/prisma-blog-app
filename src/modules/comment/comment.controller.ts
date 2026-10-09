@@ -77,10 +77,11 @@ const moderateComment = async (req: Request, res: Response) => {
     const { commentId } = req.params;
    const result= await commentService.moderateComment(commentId as string, req.body);
     res.status(200).json({ message: "Comment moderated successfully", result });
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = (e instanceof Error) ? e.message : "Unknown error";
     res.status(400).json({
-      error: "Failed to moderate comment",
-      details: error,
+      error: errorMessage,
+      details: e,
     });
   }
 };
