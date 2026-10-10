@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { PostService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/client";
 import paginationSortingHelper from "../../helper/paginationSortingHelper";
+import { error } from "console";
 
 const createPost = async (req: Request, res: Response) => {
   try {
@@ -76,13 +77,13 @@ const getAllPost = async (req: Request, res: Response) => {
   }
 };
 
-const getPostById = async (req: Request, res: Response) => {
+const getPostByPostId = async (req: Request, res: Response) => {
   try {
     const { postId } = req.params;
     if (!postId || Array.isArray(postId)) {
       throw new Error("Post ID is required")
     }
-    const post = await PostService.getPostById(postId);
+    const post = await PostService.getPostByPostId(postId);
     res.status(200).json(post);
   } catch (error) {
     res.status(400).json({
@@ -92,8 +93,53 @@ const getPostById = async (req: Request, res: Response) => {
   }
 };
 
+const getMyPosts = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const myPosts = await PostService.getMyPosts(user.id as string);
+    res.status(200).json(myPosts);
+
+  } catch (e) {
+    console.log(e);
+    res.status(400).json({
+      error: "Error fetching my posts",
+      details: e,
+    });
+  }
+};
+
+const updatePosts = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const { postId } = req.params;
+
+    const updatedPost = await PostService.updatePost(postId as string, req.body, user.id as string);
+
+    res.status(200).json(updatedPost);
+
+  } catch (e) {
+    const errorMessage = (e instanceof Error) ? e.message : "Unknown error";
+    res.status(400).json({
+      error: errorMessage,
+      details: e,
+    });
+  }
+};
+
+
+
 export const postController = {
   createPost,
   getAllPost,
-  getPostById,
-};
+  getPostByPostId,
+  getMyPosts,
+  updatePosts,
+};    
+

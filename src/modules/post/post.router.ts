@@ -63,10 +63,13 @@ const router = express.Router();
 //     next();
 //   };
 // };
+router.get("/my-posts", auth(UserRole.USER, UserRole.ADMIN ), postController.getMyPosts)
+router.get("/get-all-posts", auth(UserRole.USER, UserRole.ADMIN), postController.getAllPost)
+router.get("/:postId", auth(UserRole.USER, UserRole.ADMIN), postController.getPostByPostId)
 
-router.get("/get-all-posts", postController.getAllPost)
-router.get("/:postId", postController.getPostById)
 
 router.post("/", auth(UserRole.USER), postController.createPost);
+
+router.patch("/:postId", auth(UserRole.USER, UserRole.ADMIN), postController.updatePosts);
 
 export const postRouter = router;

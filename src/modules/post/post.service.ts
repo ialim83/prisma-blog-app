@@ -127,7 +127,7 @@ const getAllPosts = async ({
   };
 };
 
-const getPostById = async (PostId: string) => {
+const getPostByPostId = async (PostId: string) => {
   // console.log("id");
   return await prisma.$transaction(async (tx) => {
     await tx.post.update({
@@ -179,15 +179,79 @@ const getPostById = async (PostId: string) => {
             },
           },
         },
-        
       },
     });
     return post;
   });
 };
 
+const getMyPosts = async (authorId: string) => {
+  // console.log(" my posts");
+  await prisma.user.findUniqueOrThrow({
+    where: {
+      id: authorId,
+      status: "ACTIVE",
+    },
+  });
+
+  const myPosts = await prisma.post.findMany({
+    where: {
+      authorId: authorId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      _count: {
+        select: {
+          comments: true,
+        },
+      },
+    },
+  });
+  const total = await prisma.post.count({
+    where: {
+      authorId: authorId,
+    },
+  });
+  return {
+    total,
+    data: myPosts,
+  };
+};
+
+const updatePost = async (postId: string, data: Partial<Post>, authorId: string) => {
+  // console.log(postId, data, authorId);
+  
+    const postData = await prisma.post.findUniqueOrThrow({
+    where: {
+      id: postId,
+    },
+    select: {
+      id: true,
+      authorId: true,
+    },
+  });
+
+  if (postData.authorId !== authorId) {
+    throw new Error("You are not authorized to update this post");
+  }
+
+  const updatedPost = await prisma.post.update({
+    where: {
+      id: postData.id,
+    },
+    data
+  });
+  return updatedPost;
+
+
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
-  getPostById,
+  getPostByPostId,
+  getMyPosts,
+  updatePost,
 };
