@@ -220,7 +220,8 @@ const getMyPosts = async (authorId: string) => {
   };
 };
 
-const updatePost = async (postId: string, data: Partial<Post>, authorId: string) => {
+// user can update only his own post without isFeatured field, admin can update any post and every field including isFeatured
+const updatePost = async (postId: string, data: Partial<Post>, authorId: string, isAdmin: boolean) => {
   // console.log(postId, data, authorId);
   
     const postData = await prisma.post.findUniqueOrThrow({
@@ -233,8 +234,11 @@ const updatePost = async (postId: string, data: Partial<Post>, authorId: string)
     },
   });
 
-  if (postData.authorId !== authorId) {
+  if (!isAdmin && postData.authorId !== authorId) {
     throw new Error("You are not authorized to update this post");
+  }
+  if(!isAdmin){
+    delete data.isFeatured; // Remove isFeatured field if the user is not an admin
   }
 
   const updatedPost = await prisma.post.update({

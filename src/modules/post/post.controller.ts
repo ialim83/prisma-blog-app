@@ -3,6 +3,7 @@ import { PostService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/client";
 import paginationSortingHelper from "../../helper/paginationSortingHelper";
 import { error } from "console";
+import { UserRole } from "../../middlewares/auth";
 
 const createPost = async (req: Request, res: Response) => {
   try {
@@ -119,8 +120,10 @@ const updatePosts = async (req: Request, res: Response) => {
       throw new Error("User not found");
     }
     const { postId } = req.params;
-
-    const updatedPost = await PostService.updatePost(postId as string, req.body, user.id as string);
+    const isAdmin = user.role === UserRole.ADMIN;
+    console.log(user);
+    
+    const updatedPost = await PostService.updatePost(postId as string, req.body, user.id as string, isAdmin);
 
     res.status(200).json(updatedPost);
 
