@@ -221,10 +221,15 @@ const getMyPosts = async (authorId: string) => {
 };
 
 // user can update only his own post without isFeatured field, admin can update any post and every field including isFeatured
-const updatePost = async (postId: string, data: Partial<Post>, authorId: string, isAdmin: boolean) => {
+const updatePost = async (
+  postId: string,
+  data: Partial<Post>,
+  authorId: string,
+  isAdmin: boolean,
+) => {
   // console.log(postId, data, authorId);
-  
-    const postData = await prisma.post.findUniqueOrThrow({
+
+  const postData = await prisma.post.findUniqueOrThrow({
     where: {
       id: postId,
     },
@@ -237,7 +242,7 @@ const updatePost = async (postId: string, data: Partial<Post>, authorId: string,
   if (!isAdmin && postData.authorId !== authorId) {
     throw new Error("You are not authorized to update this post");
   }
-  if(!isAdmin){
+  if (!isAdmin) {
     delete data.isFeatured; // Remove isFeatured field if the user is not an admin
   }
 
@@ -245,11 +250,72 @@ const updatePost = async (postId: string, data: Partial<Post>, authorId: string,
     where: {
       id: postData.id,
     },
-    data
+    data,
   });
   return updatedPost;
+};
 
+// user can delete only his own post without isFeatured field, admin can delete any post
+const deletePost = async (
+  postId: string,
+  authorId: string,
+  isAdmin: boolean,
+) => {
+  // console.log(postId, data, authorId);
 
+  const postData = await prisma.post.findUniqueOrThrow({
+    where: {
+      id: postId,
+    },
+    select: {
+      id: true,
+      authorId: true,
+    },
+  });
+
+  if (!isAdmin && postData.authorId !== authorId) {
+    throw new Error("You are not authorized to update this post");
+  }
+
+  const deletedPost = await prisma.post.delete({
+    where: {
+      id: postData.id,
+    },
+  });
+  return deletedPost;
+};
+
+const getStats = async () => {
+  // console.log("getStats");
+
+  return await prisma.$transaction(async (tx) => {
+    const totalPosts = await tx.post.count();
+    const publishedPosts = await tx.post.count({
+      where: {
+        status: PostStatus.PUBLISHED,
+      },
+    });
+    const draftPosts = await tx.post.count({
+      where: {
+        status: PostStatus.DRAFT,
+      },
+    });
+    const archivedPosts = await tx.post.count({
+      where: {
+        status: PostStatus.ARCHIVED,
+      },
+    });
+    const totalComments = await tx.comment.count();
+    const totalUsers = await tx.user.count();
+    return {
+      totalPosts,
+      publishedPosts,
+      draftPosts,
+      archivedPosts,
+      totalComments,
+      totalUsers,
+    };
+  });
 };
 
 export const PostService = {
@@ -258,4 +324,6 @@ export const PostService = {
   getPostByPostId,
   getMyPosts,
   updatePost,
+  deletePost,
+  getStats,
 };

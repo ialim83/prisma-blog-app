@@ -121,7 +121,7 @@ const updatePosts = async (req: Request, res: Response) => {
     }
     const { postId } = req.params;
     const isAdmin = user.role === UserRole.ADMIN;
-    console.log(user);
+    // console.log(user);
     
     const updatedPost = await PostService.updatePost(postId as string, req.body, user.id as string, isAdmin);
 
@@ -137,6 +137,42 @@ const updatePosts = async (req: Request, res: Response) => {
 };
 
 
+const deletePost = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const { postId } = req.params;
+    const isAdmin = user.role === UserRole.ADMIN;
+    // console.log(user);
+    
+    const deletedPost = await PostService.deletePost(postId as string, user.id as string, isAdmin);
+
+    res.status(200).json({result: "Post deleted successfully", data: deletedPost});
+
+  } catch (e) {
+    const errorMessage = (e instanceof Error) ? e.message : "Unknown error";
+    res.status(400).json({
+      error: errorMessage,
+      details: e,
+    });
+  }
+};
+
+const getStats = async (req: Request, res: Response) => {
+  try {
+    const stats = await PostService.getStats();
+    res.status(200).json(stats);
+  } catch (e) {
+    console.log(e);
+    const errorMessage = (e instanceof Error) ? e.message : "get stats failed";
+    res.status(400).json({
+      error: errorMessage,
+      details: e,
+    });
+  }
+}
 
 export const postController = {
   createPost,
@@ -144,5 +180,7 @@ export const postController = {
   getPostByPostId,
   getMyPosts,
   updatePosts,
+  deletePost,
+  getStats
 };    
 
