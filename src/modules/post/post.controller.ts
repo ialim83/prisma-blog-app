@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { PostService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/client";
 import paginationSortingHelper from "../../helper/paginationSortingHelper";
 import { error } from "console";
 import { UserRole } from "../../middlewares/auth";
 
-const createPost = async (req: Request, res: Response) => {
+const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user;
     if (!user) {
@@ -18,10 +18,11 @@ const createPost = async (req: Request, res: Response) => {
 
     res.status(202).json(result);
   } catch (error) {
-    res.status(400).json({
-      error: "Post creation error",
-      details: error,
-    });
+    next(error);
+    // res.status(400).json({
+    //   error: "Post creation error",
+    //   details: error,
+    // });
   }
 };
 

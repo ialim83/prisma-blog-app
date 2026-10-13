@@ -5,6 +5,7 @@ import {
 } from "../../../generated/prisma/client";
 import { PostWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
+import { UserRole } from "../../middlewares/auth";
 
 const createPost = async (
   data: Omit<Post, "id" | "createdAt" | "updatedAt" | "authorId">,
@@ -288,25 +289,58 @@ const deletePost = async (
 const getStats = async () => {
   // console.log("getStats");
 
+  // First way
+  // return await prisma.$transaction(async (tx) => {
+  //   const totalPosts = await tx.post.count();
+  //   const publishedPosts = await tx.post.count({
+  //     where: {
+  //       status: PostStatus.PUBLISHED,
+  //     },
+  //   });
+  //   const draftPosts = await tx.post.count({
+  //     where: {
+  //       status: PostStatus.DRAFT,
+  //     },
+  //   });
+  //   const archivedPosts = await tx.post.count({
+  //     where: {
+  //       status: PostStatus.ARCHIVED,
+  //     },
+  //   });
+  //   const totalComments = await tx.comment.count();
+  //   const totalUsers = await tx.user.count();
+  //   return { totalPosts, publishedPosts, draftPosts, archivedPosts, totalComments, totalUsers };
+  // });
+
+  // Second way
   return await prisma.$transaction(async (tx) => {
-    const totalPosts = await tx.post.count();
-    const publishedPosts = await tx.post.count({
-      where: {
-        status: PostStatus.PUBLISHED,
-      },
-    });
-    const draftPosts = await tx.post.count({
-      where: {
-        status: PostStatus.DRAFT,
-      },
-    });
-    const archivedPosts = await tx.post.count({
-      where: {
-        status: PostStatus.ARCHIVED,
-      },
-    });
-    const totalComments = await tx.comment.count();
-    const totalUsers = await tx.user.count();
+    const [
+      totalPosts,
+      publishedPosts,
+      draftPosts,
+      archivedPosts,
+      totalComments,
+      totalUsers,
+      totalApprovedComments,
+      totalRejectComments,
+      totalAdminUsers,
+      totalViews,
+    ] = await Promise.all([
+      tx.post.count(),
+      tx.post.count({ where: { status: PostStatus.PUBLISHED } }),
+      tx.post.count({ where: { status: PostStatus.DRAFT } }),
+      tx.post.count({ where: { status: PostStatus.ARCHIVED } }),
+      tx.comment.count(),
+      tx.user.count(),
+      tx.comment.count({ where: { status: CommentStatus.APPROVED } }),
+      tx.comment.count({ where: { status: CommentStatus.REJECT } }),
+      tx.user.count({ where: { role: UserRole.ADMIN } }),
+      tx.post.aggregate({
+        _sum: {
+          views: true,
+        },
+      }),
+    ]);
     return {
       totalPosts,
       publishedPosts,
@@ -314,6 +348,10 @@ const getStats = async () => {
       archivedPosts,
       totalComments,
       totalUsers,
+      totalApprovedComments,
+      totalRejectComments,
+      totalViews: totalViews._sum.views || 0,
+      totalAdminUsers,
     };
   });
 };
