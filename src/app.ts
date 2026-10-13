@@ -5,6 +5,7 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import { commentRouter } from "./modules/comment/comment.router";
 import errorHandler from "./middlewares/globalErrorhandler";
+import { notFound } from "./middlewares/notFound";
 const app: Application = express();
 app.use(express.json())
 
@@ -24,6 +25,8 @@ app.use("/comments", commentRouter)
 app.get("/", (req,res)=>{
     res.send("Hello world")
 })
+
+app.use(notFound);
 
 app.use(errorHandler);
 

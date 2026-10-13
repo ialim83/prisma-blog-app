@@ -114,7 +114,7 @@ const getMyPosts = async (req: Request, res: Response) => {
   }
 };
 
-const updatePosts = async (req: Request, res: Response) => {
+const updatePosts = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user;
     if (!user) {
@@ -129,11 +129,12 @@ const updatePosts = async (req: Request, res: Response) => {
     res.status(200).json(updatedPost);
 
   } catch (e) {
-    const errorMessage = (e instanceof Error) ? e.message : "Unknown error";
-    res.status(400).json({
-      error: errorMessage,
-      details: e,
-    });
+    next(e);
+    // const errorMessage = (e instanceof Error) ? e.message : "Unknown error";
+    // res.status(400).json({
+    //   error: errorMessage,
+    //   details: e,
+    // });
   }
 };
 
